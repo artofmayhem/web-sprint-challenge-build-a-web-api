@@ -10,5 +10,14 @@ your file is getting way too big, bring a Router and make it thin, don't worry, 
 there is no data on that route, just write some code, you'll sort it out… don't worry, just hack it…
 I need this code, but don't know where, perhaps should make some middleware, don't worry, just hack it
 
-Pull your server into this file and start it!
+Pull your server into this file and start it!   LOLOLOLOLOLOLOL Love this! lol
 */
+
+const server = require('./api/server');
+
+const port = 5000;
+const message = `Server Running: localhost:${port}`
+// START YOUR SERVER HERE
+server.listen(port, () => {
+    console.log(message)
+})

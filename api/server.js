@@ -1,4 +1,6 @@
 const express = require('express');
+const postsRouter = require('./posts/posts-router')
+const actionsRouter = require('./actions/actions-router')
 const server = express();
 
 // Configure your server here
