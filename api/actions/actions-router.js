@@ -86,10 +86,72 @@ router.post("/", logger, (req, res) => {
 //   - If the request body is missing any of the required fields it responds with a status code 400.
 //   - When adding an action make sure the `project_id` provided belongs to an existing `project`.
 // - [ ] `[PUT] /api/actions/:id`
+router.put("/:id", logger, (req, res) => {
+    const id = req.params.id;
+    const changes = req.body;
+    if (!changes) {
+      res.status(400).json({
+        message: "Please provide name and description for the project",
+      });
+    } else {
+      Actions.update(id, changes)
+        .then((actionUpdate) => {
+          if (actionUpdate) {
+            //   - Returns the updated action as the body of the response.
+            res.status(200).json(actionUpdate);
+          } else {
+            //   - If there is no action with the given `id` it responds with a status code 404.
+            res.status(404).json({
+              message: `action with id of ${id} was not found`,
+            });
+          }
+        })
+        .catch((err) => {
+          console.log("Error from put request actions-router", { err });
+          res.status(400).json({
+            //   - If the request body is missing any of the required fields it responds with a status code 400.
+            message: "Error updating actions. Missing required fields",
+          });
+        });
+    }
+  });
 //   - Returns the updated action as the body of the response.
 //   - If there is no action with the given `id` it responds with a status code 404.
 //   - If the request body is missing any of the required fields it responds with a status code 400.
 // - [ ] `[DELETE] /api/actions/:id`
+router.delete("/:id", logger, (req, res) => {
+    const id = req.params.id;
+    console.log("id sanity checker", id);
+  
+    Actions.get(id)
+      .then((response) => {
+        console.log("returned response from delete action actions-router:  ", response); // response is project with given id
+        if (response) {
+          console.log("action going byebye ", response);
+          Actions.remove(id)
+            .then((deleteRes) => {
+              console.log("Happy path to victory started on delete action: ", deleteRes);
+              res
+                .status(200)
+                .json({ message: `Successful deletion of action with id ${id}` });
+            })
+            .catch((error) => {
+              console.log("error", error);
+              res.status(400).json({ message: `cannot delete project.` });
+            });
+        } else {
+          res.status(404).json({ message: `Action of ${id} not found` });
+        }
+      })
+      .catch((error) => {
+        console.log("error", error);
+        res
+          .status(500)
+          .json({
+            message: `project cannot be deleted from server: ${error}`,
+          });
+      });
+  });
 //   - Returns no response body.
 //   - If there is no action with the given `id` it responds with a status code 404.
 
