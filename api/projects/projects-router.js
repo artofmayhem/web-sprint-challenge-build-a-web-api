@@ -1,8 +1,8 @@
 // Write your "projects" router here!
 const express = require("express");
 const Projects = require("./projects-model");
+const Actions = require("../actions/actions-model");
 const { logger } = require("../middleware.js");
-const e = require("express");
 
 const router = express.Router();
 
@@ -56,17 +56,16 @@ router.get("/:id", logger, (req, res) => {
 
 // - [ ] `[POST] /api/projects`
 router.post("/", logger, (req, res) => {
-
   const newProject = req.body;
 
   if (!newProject || !newProject.name || !newProject.description) {
-    //   - If the request body is missing any of the required fields it responds with a status code 400. 
+    //   - If the request body is missing any of the required fields it responds with a status code 400.
     res
       .status(400)
       .json({ message: "Please provide name and description for the project" });
   } else {
     Projects.insert(newProject)
-      .then((project) => {  
+      .then((project) => {
         //   - Returns the newly created project as the body of the response.
         res.status(200).json(project);
       })
@@ -81,7 +80,7 @@ router.post("/", logger, (req, res) => {
 });
 
 // - [ ] `[PUT] /api/projects/:id`
-router.put("/:id", (req, res) => {
+router.put("/:id", logger, (req, res) => {
   const id = req.params.id;
   const changes = req.body;
   if (!changes || !changes.name || !changes.description) {
@@ -112,9 +111,64 @@ router.put("/:id", (req, res) => {
 });
 
 // - [ ] `[DELETE] /api/projects/:id`
+router.delete("/:id", logger, (req, res) => {
+  const id = req.params.id;
+  console.log("id sanity checker", id);
+
+  Projects.get(id)
+    .then((response) => {
+      console.log("returned response fron delete project project-router:  ", response); // response is project with given id
+      if (response) {
+        console.log("project going byebye ", response);
+        Projects.remove(id)
+          .then((deleteRes) => {
+            console.log("Happy path to victory started on delete project: ", deleteRes);
+            res
+              .status(200)
+              .json({ message: `Successful deletion of project of id ${id}` });
+          })
+          .catch((error) => {
+            console.log("error", error);
+            res.status(400).json({ message: `cannot delete project.` });
+          });
+      } else {
+        res.status(404).json({ message: `Project of ${id} not found` });
+      }
+    })
+    .catch((error) => {
+      console.log("error", error);
+      res
+        .status(500)
+        .json({
+          message: `project cannot be deleted from server: ${error}`,
+        });
+    });
+});
 //   - Returns no response body.
-//   - If there is no project with the given `id` it responds with a status code 404.
+
 // - [ ] `[GET] /api/projects/:id/actions`
+router.get("/:id/actions", logger, (req, res) => {
+  const { id } = req.params;
+  Actions.get(id)
+  .then((actions) => {
+      if(actions) {
+          Projects.getProjectActions(id)
+          .then((actions) => {
+            res.status(200).json(actions)
+          })
+          .catch((err) => {
+              console.log("error from get actions", err)
+              res.status(500).json({
+                  message: 'the actions could not be retrieved'
+              })
+          })
+      } else {
+          res.status(404).json({
+              message: 'the actions for the specified id do not exist'
+          })
+      }
+  })
+});
 //   - Returns an array of actions (could be empty) belonging to a project with the given `id`.
 //   - If there is no project with the given `id` it responds with a status code 404.
 
